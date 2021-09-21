@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.okhome.testingapp.feature.MainActivity">
+    <item
+        android:id="@+id/act_view_grid"
+        android:orderInCategory="50"
+        android:icon="@drawable/ic_sharp_grid_view_24"
+        android:title="@string/lbl_grid_view"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/act_view_list"
+        android:orderInCategory="50"
+        android:icon="@drawable/ic_sharp_view_list_24"
+        android:title="@string/lbl_list_view"
+        app:showAsAction="ifRoom" />
+</menu>
