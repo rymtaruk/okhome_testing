@@ -19,6 +19,7 @@ import retrofit2.HttpException;
 
 public class BaseViewModel extends ViewModel {
     protected final CompositeDisposable subscribe = new CompositeDisposable();
+    protected Disposable disposable = new CompositeDisposable();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> loadingState = new MutableLiveData<>();
     private int loadingCounter = 0;
@@ -93,6 +94,9 @@ public class BaseViewModel extends ViewModel {
     @Override
     protected void onCleared() {
         subscribe.clear();
+        if (disposable.isDisposed()){
+            disposable.dispose();
+        }
         super.onCleared();
     }
 
