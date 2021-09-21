@@ -1,4 +1,4 @@
-package com.okhome.testing;
+package com.okhome.testingapp;
 
 import org.junit.Test;
 
