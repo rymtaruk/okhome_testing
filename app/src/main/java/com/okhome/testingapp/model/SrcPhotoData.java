@@ -8,4 +8,5 @@ import lombok.Data;
 public class SrcPhotoData implements Serializable {
     private String original;
     private String landscape;
+    private String tiny;
 }

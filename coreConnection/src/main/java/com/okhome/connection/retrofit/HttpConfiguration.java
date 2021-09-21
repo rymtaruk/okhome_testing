@@ -4,9 +4,13 @@ import android.annotation.SuppressLint;
 import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.okhome.connection.constant.PropertiesData;
 import com.okhome.connection.utils.Tls12SocketFactory;
+import com.readystatesoftware.chuck.ChuckInterceptor;
 
+import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -19,15 +23,20 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import okhttp3.ConnectionSpec;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.Response;
 import okhttp3.TlsVersion;
+import okhttp3.internal.annotations.EverythingIsNonNull;
 
 public class HttpConfiguration {
 
     public static OkHttpClient.Builder getClient() {
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
+        ChuckInterceptor chuckInterceptor = new ChuckInterceptor(PropertiesData.getInstance().context);
         httpClient.followRedirects(true)
+                .addInterceptor(chuckInterceptor)
                 .followSslRedirects(true)
                 .retryOnConnectionFailure(true)
                 .cache(null)
@@ -37,12 +46,15 @@ public class HttpConfiguration {
 
         enableTls12OnPreLollipop(httpClient).build();
 
-        httpClient.addInterceptor(chain -> {
-            Request request = chain.request();
-            request.newBuilder()
-                    .addHeader("Authorization", PropertiesData.getInstance().apiKey)
-                    .build();
-            return chain.proceed(request);
+        httpClient.addInterceptor(new Interceptor() {
+            @Override
+            @EverythingIsNonNull
+            @NonNull
+            public Response intercept(@NonNull Chain chain) throws IOException {
+                Request.Builder builder = chain.request().newBuilder();
+                builder.header("Authorization", PropertiesData.getInstance().apiKey);
+                return chain.proceed(builder.build());
+            }
         });
         return httpClient;
     }
