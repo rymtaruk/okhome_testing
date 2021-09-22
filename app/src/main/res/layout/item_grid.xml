@@ -19,29 +19,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.facebook.shimmer.ShimmerFrameLayout
-            android:id="@+id/sflLoading"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            app:shimmer_repeat_mode="reverse"
-            app:layout_constraintBottom_toTopOf="@id/tvInfo"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_gravity="center"
-                android:background="#DDDDDD"
-                tools:ignore="ContentDescription" />
-        </com.facebook.shimmer.ShimmerFrameLayout>
-
         <ImageView
             android:id="@+id/ivAvatar"
             android:layout_width="0dp"
             android:layout_height="100dp"
-            android:visibility="invisible"
+            android:visibility="visible"
+            android:scaleType="centerCrop"
             app:layout_constraintBottom_toTopOf="@id/tvInfo"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

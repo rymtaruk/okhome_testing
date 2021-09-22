@@ -11,7 +11,7 @@ import retrofit2.http.Query;
 
 public interface Api {
     @GET("/v1/curated")
-    Single<CuratedData> getCurated(@Query("page") String page);
+    Single<CuratedData> getCurated(@Query("page") String page, @Query("per_page") String perPage);
 
     @GET("/v1/photos/{id}")
     Single<PhotoData> getDetailCurated(@Path("id") int id);

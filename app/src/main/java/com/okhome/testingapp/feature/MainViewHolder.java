@@ -1,5 +1,6 @@
 package com.okhome.testingapp.feature;
 
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
@@ -8,10 +9,9 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.okhome.testingapp.R;
 import com.okhome.testingapp.databinding.ItemGridBinding;
 import com.okhome.testingapp.databinding.ItemListBinding;
@@ -28,26 +28,25 @@ public class MainViewHolder {
         }
 
         public void bind(PhotoData data) {
-            binding.ivAvatar.setVisibility(View.INVISIBLE);
             Glide.with(binding.getRoot())
+                    .asBitmap()
                     .load(data.getSrc().getTiny())
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .skipMemoryCache(true)
+                    .dontAnimate()
                     .centerCrop()
-                    .listener(new RequestListener<Drawable>() {
+                    .placeholder(R.drawable.bg_shimmer_child)
+                    .into(new CustomTarget<Bitmap>() {
                         @Override
-                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                            binding.sflLoading.setVisibility(View.GONE);
-                            binding.ivAvatar.setImageResource(R.drawable.ic_twotone_image_100);
-                            return false;
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            binding.ivAvatar.setImageBitmap(resource);
                         }
 
                         @Override
-                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                            binding.sflLoading.setVisibility(View.GONE);
-                            binding.ivAvatar.setVisibility(View.VISIBLE);
-                            return false;
+                        public void onLoadCleared(@Nullable Drawable placeholder) {
+                            binding.ivAvatar.setImageDrawable(placeholder);
                         }
-                    })
-                    .into(binding.ivAvatar);
+                    });
             binding.tvInfo.setText(data.getPhotographer());
         }
     }
@@ -61,26 +60,25 @@ public class MainViewHolder {
         }
 
         public void bind(PhotoData data){
-            binding.ivAvatar.setVisibility(View.INVISIBLE);
             Glide.with(binding.getRoot())
+                    .asBitmap()
                     .load(data.getSrc().getTiny())
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .dontAnimate()
                     .centerCrop()
-                    .listener(new RequestListener<Drawable>() {
+                    .placeholder(R.drawable.bg_shimmer_child)
+                    .into(new CustomTarget<Bitmap>() {
                         @Override
-                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                            binding.sflLoading.setVisibility(View.GONE);
-                            binding.ivAvatar.setImageResource(R.drawable.ic_twotone_image_80);
-                            return false;
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            binding.ivAvatar.setImageBitmap(resource);
                         }
 
                         @Override
-                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                            binding.sflLoading.setVisibility(View.GONE);
-                            binding.ivAvatar.setVisibility(View.VISIBLE);
-                            return false;
+                        public void onLoadCleared(@Nullable Drawable placeholder) {
+                            binding.ivAvatar.setImageDrawable(placeholder);
                         }
-                    })
-                    .into(binding.ivAvatar);
+                    });
             binding.tvInfo.setText(data.getPhotographer());
         }
     }

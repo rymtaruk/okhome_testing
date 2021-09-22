@@ -15,8 +15,8 @@ public class CuratedRepository {
         this.api = api;
     }
 
-    public Single<CuratedData> getCuratedData(String page){
-        return this.api.getCurated(page);
+    public Single<CuratedData> getCuratedData(String page, String perPage){
+        return this.api.getCurated(page, perPage);
     }
 
     public Single<PhotoData> getDetailCuratedData(int id){

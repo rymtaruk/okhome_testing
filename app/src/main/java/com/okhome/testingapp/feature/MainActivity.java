@@ -33,6 +33,7 @@ public class MainActivity extends BaseActivity implements RecyclerViewListener<P
     private MainViewModel viewModel;
     private MainAdapter adapter;
     private GridLayoutManager gridLayoutManager;
+    private boolean isLoad = false;
 
     @Override
     protected void onSetup() {
@@ -47,8 +48,20 @@ public class MainActivity extends BaseActivity implements RecyclerViewListener<P
         binding.toolbarLayout.setTitle("Awesome App");
         binding.viewContent.getRoot().setOnRefreshListener(this);
         binding.fabScrollDown.setOnClickListener(v -> scrollDown());
-        checkNetwork();
+        if (checkNetwork()){
+            viewModel.loadCurated();
+        }
         initRecyclerView();
+
+        binding.viewContent.nScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+            if(v.getChildAt(v.getChildCount() - 1) != null) {
+                if ((scrollY >= (v.getChildAt(v.getChildCount() - 1).getMeasuredHeight() - v.getMeasuredHeight())) && scrollY > oldScrollY) {
+                    if (isLoad){
+                        viewModel.loadMore();
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -80,8 +93,17 @@ public class MainActivity extends BaseActivity implements RecyclerViewListener<P
         });
 
         viewModel.getPhotoData().observe(this, photoData -> {
+            isLoad = true;
             getAdapter().setItems(photoData);
             getAdapter().notifyDataSetChanged();
+            Toast.makeText(this, "load : "+ getAdapter().getItemCount(), Toast.LENGTH_SHORT).show();
+        });
+
+        viewModel.getDataOnRefresh().observe(this, photoData -> {
+            getAdapter().refreshList();
+            getAdapter().setItems(photoData);
+            getAdapter().notifyDataSetChanged();
+            Toast.makeText(this, "refresh : "+ getAdapter().getItemCount(), Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -107,15 +129,6 @@ public class MainActivity extends BaseActivity implements RecyclerViewListener<P
         getAdapter().setListener(this);
         binding.viewContent.rvItems.setLayoutManager(gridLayoutManager);
         binding.viewContent.rvItems.setAdapter(getAdapter());
-
-        binding.viewContent.nScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-            if(v.getChildAt(v.getChildCount() - 1) != null) {
-                if ((scrollY >= (v.getChildAt(v.getChildCount() - 1).getMeasuredHeight() - v.getMeasuredHeight())) &&
-                        scrollY > oldScrollY) {
-                    viewModel.loadMore();
-                }
-            }
-        });
     }
 
     private void switchAdapterView(int span) {
@@ -139,19 +152,24 @@ public class MainActivity extends BaseActivity implements RecyclerViewListener<P
 
     @Override
     public void onRefresh() {
-        checkNetwork();
+        if (checkNetwork()){
+            viewModel.loadOnRefresh();
+        }
     }
 
-    private void checkNetwork(){
+    private boolean checkNetwork(){
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 
         if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
-            viewModel.loadCurated();
             binding.viewContent.tvRefreshInfo.setVisibility(View.GONE);
+            return true;
         } else {
+            binding.viewContent.sflLoading.setVisibility(View.GONE);
+            binding.viewContent.getRoot().setRefreshing(false);
             Toast.makeText(getApplicationContext(), "No Internet Connection", Toast.LENGTH_SHORT).show();
             binding.viewContent.tvRefreshInfo.setVisibility(View.VISIBLE);
+            return false;
         }
     }
 

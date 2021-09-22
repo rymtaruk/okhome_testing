@@ -22,7 +22,9 @@ public class MainViewModel extends BaseViewModel {
     private final CuratedRepository repository;
 
     private final MutableLiveData<List<PhotoData>> photoData = new MutableLiveData<>();
+    private final MutableLiveData<List<PhotoData>> onRefresh = new MutableLiveData<>();
     private int page = 1;
+    private int perPage = 0;
 
     @Inject
     public MainViewModel(CuratedRepository repository) {
@@ -33,17 +35,28 @@ public class MainViewModel extends BaseViewModel {
         return photoData;
     }
 
+    public LiveData<List<PhotoData>> getDataOnRefresh() {
+        return onRefresh;
+    }
+
     @SuppressLint("CheckResult")
     public void loadCurated() {
+        page += 1;
+
         String strPage = String.valueOf(page);
-        disposable = addDisposable(repository.getCuratedData(strPage))
+        String strPerPage = String.valueOf(15);
+
+        disposable = addDisposable(repository.getCuratedData(strPage, strPerPage))
                 .subscribe(this::onResponse);
     }
 
     public void loadMore() {
         page += 1;
+
         String strPage = String.valueOf(page);
-        disposable = repository.getCuratedData(strPage)
+        String strPerPage = String.valueOf(15);
+
+        disposable = repository.getCuratedData(strPage, strPerPage)
                 .toMaybe()
                 .subscribeOn(Schedulers.io())
                 .delay(200, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
@@ -53,7 +66,27 @@ public class MainViewModel extends BaseViewModel {
                 .subscribe(this::onResponse);
     }
 
+    public void loadOnRefresh(){
+        page = 1;
+        String strPage = String.valueOf(page);
+        String strPerPage = String.valueOf(perPage);
+
+        if (perPage == 0){
+            loadCurated();
+        } else {
+            disposable = addDisposable(repository.getCuratedData(strPage, strPerPage))
+                    .subscribe(this::onRefreshResponse);
+        }
+    }
+
     private void onResponse(CuratedData data){
+        perPage += data.getPerPage();
         photoData.setValue(data.getPhotos());
     }
+
+    private void onRefreshResponse(CuratedData data){
+        onRefresh.setValue(data.getPhotos());
+    }
+
+
 }

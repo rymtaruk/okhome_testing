@@ -68,6 +68,10 @@ public class MainAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
         return items;
     }
 
+    public void refreshList(){
+        items = new ArrayList<>();
+    }
+
     public void setItems(List<PhotoData> items) {
         if (getItemCount() == 0) {
             this.items = items;
