@@ -96,14 +96,12 @@ public class MainActivity extends BaseActivity implements RecyclerViewListener<P
             isLoad = true;
             getAdapter().setItems(photoData);
             getAdapter().notifyDataSetChanged();
-            Toast.makeText(this, "load : "+ getAdapter().getItemCount(), Toast.LENGTH_SHORT).show();
         });
 
         viewModel.getDataOnRefresh().observe(this, photoData -> {
             getAdapter().refreshList();
             getAdapter().setItems(photoData);
             getAdapter().notifyDataSetChanged();
-            Toast.makeText(this, "refresh : "+ getAdapter().getItemCount(), Toast.LENGTH_SHORT).show();
         });
     }
 
