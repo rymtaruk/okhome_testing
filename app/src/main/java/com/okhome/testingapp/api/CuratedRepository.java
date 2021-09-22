@@ -1,6 +1,7 @@
 package com.okhome.testingapp.api;
 
 import com.okhome.testingapp.model.CuratedData;
+import com.okhome.testingapp.model.PhotoData;
 
 import javax.inject.Inject;
 
@@ -16,5 +17,9 @@ public class CuratedRepository {
 
     public Single<CuratedData> getCuratedData(String page){
         return this.api.getCurated(page);
+    }
+
+    public Single<PhotoData> getDetailCuratedData(int id){
+        return this.api.getDetailCurated(id);
     }
 }

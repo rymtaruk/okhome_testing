@@ -1,11 +1,16 @@
 package com.okhome.testingapp.feature;
 
+import com.okhome.connection.utils.RecyclerViewListener;
 import com.okhome.testingapp.R;
 import com.okhome.testingapp.base.BaseActivity;
 import com.okhome.testingapp.databinding.ActivityMainBinding;
+import com.okhome.testingapp.feature.detail.DetailInfoActivity;
+import com.okhome.testingapp.model.PhotoData;
 
+import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -13,9 +18,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import static com.okhome.testingapp.feature.MainAdapter.GRID_SPAN;
 import static com.okhome.testingapp.feature.MainAdapter.LIST_SPAN;
+import static com.okhome.testingapp.feature.detail.DetailInfoActivity.PHOTO_ID;
 
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements RecyclerViewListener<PhotoData> {
     private ActivityMainBinding binding;
     private MainViewModel viewModel;
     private MainAdapter adapter;
@@ -60,6 +66,16 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void onObserverData() {
+        viewModel.getLoadingState().observe(this, status -> {
+            if (status){
+                binding.viewContent.sflLoading.setVisibility(View.VISIBLE);
+                binding.viewContent.rvItems.setVisibility(View.GONE);
+            } else {
+                binding.viewContent.sflLoading.setVisibility(View.GONE);
+                binding.viewContent.rvItems.setVisibility(View.VISIBLE);
+            }
+        });
+
         viewModel.getPhotoData().observe(this, photoData -> {
             getAdapter().setItems(photoData);
             getAdapter().notifyDataSetChanged();
@@ -85,6 +101,7 @@ public class MainActivity extends BaseActivity {
     private void initRecyclerView() {
         gridLayoutManager = new GridLayoutManager(this, LIST_SPAN);
         getAdapter().setGridLayoutManager(gridLayoutManager);
+        getAdapter().setListener(this);
         binding.viewContent.rvItems.setLayoutManager(gridLayoutManager);
         binding.viewContent.rvItems.setAdapter(getAdapter());
     }
@@ -99,5 +116,12 @@ public class MainActivity extends BaseActivity {
             adapter = new MainAdapter();
         }
         return adapter;
+    }
+
+    @Override
+    public void onClick(View view, PhotoData data) {
+        Intent intent = new Intent(view.getContext(), DetailInfoActivity.class);
+        intent.putExtra(PHOTO_ID, data.getId());
+        startActivity(intent);
     }
 }

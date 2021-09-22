@@ -18,6 +18,7 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.okhome.connection.utils.RecyclerViewListener;
 import com.okhome.testingapp.R;
 import com.okhome.testingapp.databinding.ItemGridBinding;
 import com.okhome.testingapp.databinding.ItemListBinding;
@@ -35,10 +36,12 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     private List<PhotoData> items;
     private GridLayoutManager gridLayoutManager;
+    private RecyclerViewListener<PhotoData> listener;
+
     @Override
     public int getItemViewType(int position) {
         int spanCount = getGridLayoutManager().getSpanCount();
-        if (spanCount == LIST_SPAN){
+        if (spanCount == LIST_SPAN) {
             return LIST_TYPE;
         } else {
             return GRID_TYPE;
@@ -49,7 +52,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         ViewBinding viewBinding;
-        if (viewType == LIST_TYPE){
+        if (viewType == LIST_TYPE) {
             viewBinding = ItemListBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         } else {
             viewBinding = ItemGridBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
@@ -60,6 +63,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull MainAdapter.ViewHolder holder, int position) {
         holder.bind(getItems().get(position));
+        holder.itemView.getRoot().setOnClickListener(v -> getListener().onClick(v, getItems().get(position)));
     }
 
     @Override
@@ -79,8 +83,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
             this.itemView = itemView;
         }
 
-        private void bind(PhotoData data){
-            if (view == LIST_TYPE){
+        private void bind(PhotoData data) {
+            if (view == LIST_TYPE) {
                 listBinding = (ItemListBinding) itemView;
                 listBinding.ivAvatar.setVisibility(View.INVISIBLE);
                 Glide.with(listBinding.getRoot())
@@ -150,5 +154,11 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         this.gridLayoutManager = gridLayoutManager;
     }
 
+    public RecyclerViewListener<PhotoData> getListener() {
+        return listener;
+    }
 
+    public void setListener(RecyclerViewListener<PhotoData> listener) {
+        this.listener = listener;
+    }
 }
