@@ -34,15 +34,26 @@ public class HttpConfiguration {
 
     public static OkHttpClient.Builder getClient() {
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
-        ChuckInterceptor chuckInterceptor = new ChuckInterceptor(PropertiesData.getInstance().context);
-        httpClient.followRedirects(true)
-                .addInterceptor(chuckInterceptor)
-                .followSslRedirects(true)
-                .retryOnConnectionFailure(true)
-                .cache(null)
-                .connectTimeout(150, TimeUnit.SECONDS)
-                .writeTimeout(150, TimeUnit.SECONDS)
-                .readTimeout(150, TimeUnit.SECONDS);
+
+        if (PropertiesData.getInstance().isDebug){
+            ChuckInterceptor chuckInterceptor = new ChuckInterceptor(PropertiesData.getInstance().context);
+            httpClient.followRedirects(true)
+                    .addInterceptor(chuckInterceptor)
+                    .followSslRedirects(true)
+                    .retryOnConnectionFailure(true)
+                    .cache(null)
+                    .connectTimeout(150, TimeUnit.SECONDS)
+                    .writeTimeout(150, TimeUnit.SECONDS)
+                    .readTimeout(150, TimeUnit.SECONDS);
+        } else {
+            httpClient.followRedirects(true)
+                    .followSslRedirects(true)
+                    .retryOnConnectionFailure(true)
+                    .cache(null)
+                    .connectTimeout(150, TimeUnit.SECONDS)
+                    .writeTimeout(150, TimeUnit.SECONDS)
+                    .readTimeout(150, TimeUnit.SECONDS);
+        }
 
         enableTls12OnPreLollipop(httpClient).build();
 

@@ -7,21 +7,28 @@ import com.okhome.testingapp.databinding.ActivityMainBinding;
 import com.okhome.testingapp.feature.detail.DetailInfoActivity;
 import com.okhome.testingapp.model.PhotoData;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import static com.okhome.testingapp.feature.MainAdapter.GRID_SPAN;
 import static com.okhome.testingapp.feature.MainAdapter.LIST_SPAN;
 import static com.okhome.testingapp.feature.detail.DetailInfoActivity.PHOTO_ID;
 
 
-public class MainActivity extends BaseActivity implements RecyclerViewListener<PhotoData> {
+public class MainActivity extends BaseActivity implements RecyclerViewListener<PhotoData>, SwipeRefreshLayout.OnRefreshListener {
     private ActivityMainBinding binding;
     private MainViewModel viewModel;
     private MainAdapter adapter;
@@ -32,47 +39,43 @@ public class MainActivity extends BaseActivity implements RecyclerViewListener<P
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         viewModel = getViewModelProvider().get(MainViewModel.class);
-        viewModel.loadCurated();
     }
 
     @Override
     protected void onViewCreated() {
         setSupportActionBar(binding.toolbar);
         binding.toolbarLayout.setTitle("Awesome App");
+        binding.viewContent.getRoot().setOnRefreshListener(this);
+        binding.fabScrollDown.setOnClickListener(v -> scrollDown());
+        checkNetwork();
         initRecyclerView();
-
-        binding.viewContent.rvItems.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                if(dy > 0){
-
-                    final int visibleThreshold = 2;
-
-                    GridLayoutManager layoutManager = (GridLayoutManager) recyclerView.getLayoutManager();
-                    int lastItem  = 0;
-                    int currentTotalCount = 0;
-                    if (layoutManager != null) {
-                        lastItem = layoutManager.findLastCompletelyVisibleItemPosition();
-                        currentTotalCount = layoutManager.getItemCount();
-                    }
-
-                    if(currentTotalCount <= lastItem + visibleThreshold){
-                        viewModel.loadMore();
-                    }
-                }
-            }
-        });
     }
 
     @Override
     protected void onObserverData() {
+        viewModel.getErrorMessage().observe(this, errorMessage -> Toast.makeText(getApplicationContext(), errorMessage, Toast.LENGTH_SHORT).show());
+
         viewModel.getLoadingState().observe(this, status -> {
-            if (status){
+            binding.viewContent.getRoot().setRefreshing(false);
+            dismissLoadingMore();
+            if (status) {
+                binding.viewContent.sflLoading.startShimmer();
                 binding.viewContent.sflLoading.setVisibility(View.VISIBLE);
                 binding.viewContent.rvItems.setVisibility(View.GONE);
             } else {
+                binding.viewContent.sflLoading.stopShimmer();
                 binding.viewContent.sflLoading.setVisibility(View.GONE);
                 binding.viewContent.rvItems.setVisibility(View.VISIBLE);
+            }
+        });
+
+        viewModel.getLoadingMore().observe(this, status -> {
+            if (status){
+                showLoadingMore();
+                dismissButtonScroll();
+            } else {
+                dismissLoadingMore();
+                showButtonScroll();
             }
         });
 
@@ -104,6 +107,15 @@ public class MainActivity extends BaseActivity implements RecyclerViewListener<P
         getAdapter().setListener(this);
         binding.viewContent.rvItems.setLayoutManager(gridLayoutManager);
         binding.viewContent.rvItems.setAdapter(getAdapter());
+
+        binding.viewContent.nScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+            if(v.getChildAt(v.getChildCount() - 1) != null) {
+                if ((scrollY >= (v.getChildAt(v.getChildCount() - 1).getMeasuredHeight() - v.getMeasuredHeight())) &&
+                        scrollY > oldScrollY) {
+                    viewModel.loadMore();
+                }
+            }
+        });
     }
 
     private void switchAdapterView(int span) {
@@ -123,5 +135,50 @@ public class MainActivity extends BaseActivity implements RecyclerViewListener<P
         Intent intent = new Intent(view.getContext(), DetailInfoActivity.class);
         intent.putExtra(PHOTO_ID, data.getId());
         startActivity(intent);
+    }
+
+    @Override
+    public void onRefresh() {
+        checkNetwork();
+    }
+
+    private void checkNetwork(){
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+
+        if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
+            viewModel.loadCurated();
+            binding.viewContent.tvRefreshInfo.setVisibility(View.GONE);
+        } else {
+            Toast.makeText(getApplicationContext(), "No Internet Connection", Toast.LENGTH_SHORT).show();
+            binding.viewContent.tvRefreshInfo.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void showLoadingMore(){
+        binding.viewContent.pbLoading.setVisibility(View.VISIBLE);
+        binding.viewContent.pbLoading.setIndeterminate(true);
+        scrollDown();
+    }
+
+    private void dismissLoadingMore(){
+        binding.viewContent.pbLoading.setVisibility(View.GONE);
+        binding.viewContent.pbLoading.setIndeterminate(false);
+    }
+
+    private void scrollDown(){
+        binding.viewContent.nScrollView.post(() -> binding.viewContent.nScrollView.fullScroll(View.FOCUS_DOWN));
+    }
+
+    private void showButtonScroll(){
+        binding.fabScrollDown.setVisibility(View.VISIBLE);
+        Animation anim = AnimationUtils.loadAnimation(this, R.anim.show_down_to_up);
+        binding.fabScrollDown.setAnimation(anim);
+    }
+
+    private void dismissButtonScroll(){
+        Animation anim = AnimationUtils.loadAnimation(this, R.anim.dismiss_up_to_down);
+        binding.fabScrollDown.setAnimation(anim);
+        binding.fabScrollDown.setVisibility(View.GONE);
     }
 }

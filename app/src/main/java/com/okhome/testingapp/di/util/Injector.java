@@ -26,6 +26,7 @@ public class Injector implements CoreComponentProvider, HasAndroidInjector {
     public static Injector getInstance(Context context) {
         PropertiesData.getInstance().baseUrl = BuildConfig.BASE_URL;
         PropertiesData.getInstance().context = context;
+        PropertiesData.getInstance().isDebug = BuildConfig.DEBUG;
 
         if (instance == null) {
             initialize((Application) context.getApplicationContext());

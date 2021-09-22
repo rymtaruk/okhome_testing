@@ -11,6 +11,7 @@ public class PropertiesData {
 
     public String baseUrl;
     public Context context;
+    public boolean isDebug;
 
     public static PropertiesData getInstance() {
         if (instance == null) {

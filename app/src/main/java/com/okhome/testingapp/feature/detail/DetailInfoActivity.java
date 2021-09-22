@@ -1,6 +1,8 @@
 package com.okhome.testingapp.feature.detail;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
@@ -47,16 +49,6 @@ public class DetailInfoActivity extends BaseActivity {
 
     @Override
     protected void onObserverData() {
-        viewModel.getLoadingState().observe(this, status -> {
-//            if (status) {
-//                binding.sflImage.setVisibility(View.VISIBLE);
-//                binding.ivPhoto.setVisibility(View.GONE);
-//            } else {
-//                binding.ivPhoto.setVisibility(View.VISIBLE);
-//                binding.sflImage.setVisibility(View.GONE);
-//            }
-        });
-
         viewModel.getPhotoData().observe(this, data -> {
             Glide.with(this).load(data.getSrc().getLandscape()).centerCrop().listener(new RequestListener<Drawable>() {
                 @Override

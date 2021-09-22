@@ -7,9 +7,11 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.okhome.testingapp.api.CuratedRepository;
 import com.okhome.testingapp.base.BaseViewModel;
+import com.okhome.testingapp.model.CuratedData;
 import com.okhome.testingapp.model.PhotoData;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
@@ -35,11 +37,23 @@ public class MainViewModel extends BaseViewModel {
     public void loadCurated() {
         String strPage = String.valueOf(page);
         disposable = addDisposable(repository.getCuratedData(strPage))
-                .subscribe(curatedData -> photoData.setValue(curatedData.getPhotos()));
+                .subscribe(this::onResponse);
     }
 
     public void loadMore() {
         page += 1;
-        loadCurated();
+        String strPage = String.valueOf(page);
+        disposable = repository.getCuratedData(strPage)
+                .toMaybe()
+                .subscribeOn(Schedulers.io())
+                .delay(200, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
+                .compose(this::moreLoading)
+                .onErrorComplete(this::errorHandler)
+                .compose(this::disposeOnClear)
+                .subscribe(this::onResponse);
+    }
+
+    private void onResponse(CuratedData data){
+        photoData.setValue(data.getPhotos());
     }
 }

@@ -4,32 +4,33 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
+    android:layout_marginStart="6dp"
+    android:layout_marginEnd="6dp"
+    android:layout_marginBottom="6dp"
+    android:layout_marginTop="6dp"
     android:background="@android:color/transparent"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?android:attr/selectableItemBackground"
-    app:cardBackgroundColor="@android:color/transparent"
-    app:cardElevation="0dp">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
+        android:layout_height="80dp">
 
         <com.facebook.shimmer.ShimmerFrameLayout
             android:id="@+id/sflLoading"
             android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_height="0dp"
             app:shimmer_repeat_mode="reverse"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tvInfo"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
-                android:layout_width="100dp"
-                android:layout_height="100dp"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:layout_gravity="center"
                 android:background="#DDDDDD"
                 tools:ignore="ContentDescription" />
@@ -38,7 +39,7 @@
         <ImageView
             android:id="@+id/ivAvatar"
             android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_height="0dp"
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/tvInfo"

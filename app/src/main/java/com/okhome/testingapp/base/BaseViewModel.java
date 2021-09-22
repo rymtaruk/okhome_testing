@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Completable;
 import io.reactivex.Maybe;
@@ -22,28 +23,20 @@ public class BaseViewModel extends ViewModel {
     protected Disposable disposable = new CompositeDisposable();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> loadingState = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> loadingMore = new MutableLiveData<>();
     private int loadingCounter = 0;
+    private int moreCounter = 0;
 
     public LiveData<Boolean> getLoadingState() {
         return loadingState;
     }
 
-    public LiveData<String> getErrorMessage() {
-        return errorMessage;
+    public LiveData<Boolean> getLoadingMore() {
+        return loadingMore;
     }
 
-    protected Completable showLoading(Completable source) {
-        return source.doOnSubscribe(d -> {
-            synchronized (loadingState) {
-                if (loadingCounter == 0) loadingState.setValue(true);
-                loadingCounter++;
-            }
-        }).doAfterTerminate(() -> {
-            synchronized (loadingState) {
-                loadingCounter--;
-                if (loadingCounter == 0) loadingState.setValue(false);
-            }
-        });
+    public LiveData<String> getErrorMessage() {
+        return errorMessage;
     }
 
     @NonNull
@@ -65,27 +58,33 @@ public class BaseViewModel extends ViewModel {
         });
     }
 
-    protected void errorMessage(String message) {
-        errorMessage.setValue(message);
+    @NonNull
+    protected <T> Maybe<T> moreLoading(Maybe<T> source) {
+        return source.doOnSubscribe(d -> {
+            synchronized (loadingMore) {
+                if (moreCounter == 0) {
+                    loadingMore.setValue(true);
+                }
+                moreCounter++;
+            }
+        }).doAfterTerminate(() -> {
+            synchronized (loadingMore) {
+                moreCounter--;
+                if (moreCounter == 0) {
+                    loadingMore.setValue(false);
+                }
+            }
+        });
     }
 
     protected boolean errorHandler(Throwable e) {
-        if (e instanceof HttpException) {
-            ResponseBody responseBody = Objects.requireNonNull(((HttpException) e).response()).errorBody();
-            String message = "GetErrorBody.body(responseBody).errorMessage()";
-            if (message == null) {
-                message = e.getMessage();
-            }
-            errorMessage.setValue(message);
-        } else {
-            errorMessage.setValue(e.getMessage());
-        }
+        errorMessage.setValue(e.getMessage());
         return true;
     }
 
-    protected <T> Maybe<T> addDisposable(@NonNull Single<T> repository){
+    protected <T> Maybe<T> addDisposable(@NonNull Single<T> repository) {
         return repository.toMaybe().subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
+                .delay(200, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
                 .compose(this::showLoading)
                 .onErrorComplete(this::errorHandler)
                 .compose(this::disposeOnClear);
@@ -94,7 +93,7 @@ public class BaseViewModel extends ViewModel {
     @Override
     protected void onCleared() {
         subscribe.clear();
-        if (disposable.isDisposed()){
+        if (disposable.isDisposed()) {
             disposable.dispose();
         }
         super.onCleared();
@@ -102,10 +101,6 @@ public class BaseViewModel extends ViewModel {
 
     protected void disposeOnClear(Disposable disposables) {
         subscribe.add(disposables);
-    }
-
-    protected Completable disposeOnClear(Completable source) {
-        return source.doOnSubscribe(this::disposeOnClear);
     }
 
     @NonNull
